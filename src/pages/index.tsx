@@ -1,21 +1,29 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/router";
 import Navbar from "@/components/NavBar";
+import AddBoardInput from "@/components/AddBoardInput";
+import { useBoardStore } from "@/store/board";
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, getUser } = useAuthStore();
 
   useEffect(() => {
     if (user == null) router.push("/login");
+
+    useBoardStore.setState({
+      board: null,
+    });
   }, [router, user]);
 
-  if (!user) return <></>;
+  const [isAddingBoard, setIsAddingBoard] = useState(false);
 
   const onClickBoard = (boardId: number) => {
     router.push(`/board/${boardId}`);
   };
+
+  if (!user) return <></>;
 
   return (
     <div className="h-screen flex flex-col gap-8">
@@ -42,6 +50,23 @@ export default function Home() {
         <div className="mt-2 cursor-pointer hover:text-yellow-400 text-slate-400 underline">
           + New Board
         </div>
+
+        <span className="text-slate-100 text-lg flex gap-4 items-center">
+          <button
+            onClick={() => setIsAddingBoard(true)}
+            className="bg-yellow-400 text-black p-2 rounded-md !text-base"
+          >
+            + New Board
+          </button>
+          {isAddingBoard && (
+            <AddBoardInput
+              onFinished={() => {
+                setIsAddingBoard(false);
+                getUser();
+              }}
+            />
+          )}
+        </span>
       </div>
     </div>
   );

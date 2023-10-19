@@ -18,14 +18,14 @@ import React, {
 import { useDrop } from "react-dnd";
 
 export default function BoardPage() {
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const { board, get: getBoard } = useBoardStore();
   const router = useRouter();
 
   const [listOrder, setListOrder] = useState("");
 
   useEffect(() => {
-    if (router.query.boardId && board == null) {
+    if (board?.id.toString() !== router.query.boardId || board == null) {
       getBoard(parseInt(router.query.boardId as string))
         .then((b) => {
           setListOrder(
@@ -39,36 +39,110 @@ export default function BoardPage() {
   }, [board, getBoard, router, router.query.boardId]);
 
   const { parent } = useAutoAnimate();
+  const { parent: emptyParent } = useAutoAnimate();
 
   const [isAddingList, setIsAddingList] = useState(false);
 
+  const showEmpty =
+    board?.lists.length == 0 && board.id.toString() === router.query.boardId;
+
+  const [name, setName] = useState(board?.name);
+
   const fetchBoard = useCallback(() => {
-    if (board?.id) getBoard(board.id);
+    if (board?.id) getBoard(board.id).then((b) => setName(b?.name));
   }, [board?.id, getBoard]);
 
-  if (!user) return <></>;
+  if (!user || !board) return <></>;
 
   return (
     <div className="h-screen flex flex-col gap-4">
       <Navbar />
       <span className="text-slate-100 px-16 text-lg flex gap-4 items-center">
-        <span>{board?.name}</span>
-        <button
-          onClick={() => setIsAddingList(true)}
-          className="bg-yellow-400 text-black p-2 rounded-md !text-base"
-        >
-          + New List
-        </button>
-        {isAddingList && (
-          <AddListInput
-            onFinished={() => {
-              setIsAddingList(false);
-              fetchBoard();
-            }}
-          />
+        {!showEmpty && (
+          <>
+            <button
+              onClick={() => setIsAddingList(true)}
+              className="bg-yellow-400 text-black p-2 rounded-md !text-xl"
+            >
+              + New List
+            </button>
+            {isAddingList && (
+              <AddListInput
+                onFinished={() => {
+                  setIsAddingList(false);
+                  fetchBoard();
+                }}
+              />
+            )}
+          </>
+        )}
+        <input
+          defaultValue={board?.name}
+          className="bg-transparent text-2xl outline-none text-slate-100"
+          onBlur={(e) => {
+            if (e.target.value.trim() == "" || e.target.value == name) {
+              if (!name) return;
+              e.target.value = name;
+              return;
+            }
+            setName(e.target.value);
+
+            e.target.disabled = true;
+
+            http
+              .put(
+                `/board/${board.id}`,
+                {
+                  name: e.target.value,
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              )
+              .then(() => {
+                e.target.disabled = false;
+              })
+              .finally(useAuthStore.getState().getUser);
+          }}
+        />
+      </span>
+
+      <span
+        ref={emptyParent}
+        className={classNames(!showEmpty && "hidden", "h-screen w-screen")}
+      >
+        {showEmpty && (
+          <div className="text-slate-400 w-full h-3/4 flex flex-col gap-4 items-center justify-center">
+            <span className="text-9xl animate-bounce">🫙</span>
+            <span className="text-xl">Oh my, such empty...</span>
+
+            <button
+              onClick={() => setIsAddingList(true)}
+              className="bg-yellow-400 text-black p-2 rounded-md !text-xl"
+            >
+              + New List
+            </button>
+            {isAddingList && (
+              <AddListInput
+                onFinished={() => {
+                  setIsAddingList(false);
+                  fetchBoard();
+                }}
+              />
+            )}
+          </div>
         )}
       </span>
-      <div className="flex w-full h-full overflow-x-auto p-8 pt-0" ref={parent}>
+
+      <div
+        className={classNames(
+          "flex w-full h-full overflow-x-auto p-8 pt-0",
+          showEmpty && "hidden"
+        )}
+        ref={parent}
+      >
         {listOrder?.split(",").map((i, index) => {
           const list = board?.lists.find((l) => l.id.toString() == i);
 
