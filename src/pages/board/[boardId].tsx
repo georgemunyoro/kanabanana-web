@@ -62,7 +62,7 @@ export default function BoardPage() {
           <>
             <button
               onClick={() => setIsAddingList(true)}
-              className="bg-yellow-400 text-black p-2 rounded-md !text-xl"
+              className="bg-yellow-400 text-black p-2 rounded-md !text-xl hover:scale-105 duration-150"
             >
               + New List
             </button>
@@ -78,7 +78,7 @@ export default function BoardPage() {
         )}
         <input
           defaultValue={board?.name}
-          className="bg-transparent text-2xl outline-none text-slate-100"
+          className="bg-transparent text-2xl outline-none text-slate-100 w-4/5"
           onBlur={(e) => {
             if (e.target.value.trim() == "" || e.target.value == name) {
               if (!name) return;
@@ -120,7 +120,7 @@ export default function BoardPage() {
 
             <button
               onClick={() => setIsAddingList(true)}
-              className="bg-yellow-400 text-black p-2 rounded-md !text-xl"
+              className="bg-yellow-400 text-black p-2 rounded-md !text-xl hover:scale-105 duration-150"
             >
               + New List
             </button>

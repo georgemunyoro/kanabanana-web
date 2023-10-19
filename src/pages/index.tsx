@@ -33,28 +33,11 @@ export default function Home() {
           // eslint-disable-next-line react/jsx-no-comment-textnodes
           <h1 className="text-xl text-slate-100">// Boards</h1>
         }
-        <div className="flex gap-2">
-          {user.boards.map((board) => (
-            <div
-              onClick={() => onClickBoard(board.id)}
-              key={board.name}
-              className="border w-64 p-3 hover:bg-yellow-300 hover:border-black cursor-pointer bg-gray-200 flex justify-between"
-            >
-              <span>{board.name}</span>
-              <span className="text-gray-400">
-                {new Date(board.updatedAt).toLocaleDateString()}
-              </span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 cursor-pointer hover:text-yellow-400 text-slate-400 underline">
-          + New Board
-        </div>
 
         <span className="text-slate-100 text-lg flex gap-4 items-center">
           <button
             onClick={() => setIsAddingBoard(true)}
-            className="bg-yellow-400 text-black p-2 rounded-md !text-base"
+            className="bg-yellow-400 text-black p-2 rounded-md !text-base hover:scale-105 duration-150"
           >
             + New Board
           </button>
@@ -67,6 +50,21 @@ export default function Home() {
             />
           )}
         </span>
+
+        <div className="flex flex-col gap-2">
+          {user.boards.map((board) => (
+            <div
+              onClick={() => onClickBoard(board.id)}
+              key={board.name}
+              className="border w-fit p-3 hover:bg-yellow-300 hover:border-black cursor-pointer bg-gray-200 flex justify-between gap-10 hover:scale-105 duration-150"
+            >
+              <span>{board.name}</span>
+              <span className="text-gray-400">
+                {new Date(board.updatedAt).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
