@@ -17,6 +17,7 @@ import CardItem from "./Card";
 import autoAnimate from "@formkit/auto-animate";
 import { useRouter } from "next/router";
 import { useAutoAnimate } from "@/hooks/useAutoAnimate";
+import NewCard from "./NewCard";
 
 const ListBox = ({ list }: { list: List }) => {
   const [{ isDragging }, dragRef] = useDrag(() => ({
@@ -34,6 +35,7 @@ const ListBox = ({ list }: { list: List }) => {
   const { token } = useAuthStore();
 
   const [listName, setListName] = useState(list.name);
+  const [isAddingNewCard, setIsAddingNewCard] = useState(false);
 
   const onBlur = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
@@ -69,12 +71,11 @@ const ListBox = ({ list }: { list: List }) => {
     <div
       ref={dragRef}
       className={classNames(
-        "bg-slate-800 min-w-[400px] h-fit min-h-[50%] p-2 flex flex-col text-slate-300 rounded-md",
+        "bg-slate-800 min-w-[400px] h- min-h-[50%] flex flex-col text-slate-300 rounded-md",
         isDragging && "opacity-0 hidden"
       )}
-      key={list.id}
     >
-      <span className="px-2 border-b-2 border-dotted border-black pb-2 flex justify-between">
+      <span className="px-4 p-3 border-b-2 border-dotted border-black pb-2 flex justify-between">
         <input
           onDragStart={(e) => {
             e.preventDefault();
@@ -86,9 +87,27 @@ const ListBox = ({ list }: { list: List }) => {
           onBlur={onBlur}
           draggable
         />
-        <button className="bg-yellow-500 rounded-md text-black px-4">+</button>
+        <button
+          className="bg-yellow-500 rounded-md text-black px-4"
+          onClick={() => setIsAddingNewCard(true)}
+        >
+          +
+        </button>
       </span>
-      <div ref={parent} className="pt-3 flex flex-col overflow-auto h-full">
+      <div
+        ref={parent}
+        className="pt-3 p-3 flex flex-col overflow-y-scroll overflow-x-hidden h-full"
+      >
+        {isAddingNewCard && (
+          <NewCard
+            onCreated={() => {
+              setIsAddingNewCard(false);
+              fetchBoard();
+            }}
+            listId={list.id}
+          />
+        )}
+
         {list.cards.map((card, index) => (
           <>
             <DropTarget
@@ -166,11 +185,13 @@ function DropTarget({
     <div
       ref={drop}
       className={classNames(
-        "min-h-[10px] w-full",
-        isOver && "!min-h-[30px] !max-h-[30px] !bg-blue-500",
-        expand && "h-1/2"
+        "min-h-[10px] h-[10px] w-full rounded-lg",
+        isOver && "min-h-[100px] py-4",
+        expand && "!h-full"
       )}
-    ></div>
+    >
+      {isOver && <div className="bg-blue-500 w-full h-full rounded-lg"></div>}
+    </div>
   );
 }
 

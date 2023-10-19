@@ -38,7 +38,7 @@ export default function CardItem({
     <div
       ref={dragRef}
       draggable
-      className="rounded-lg bg-slate-100 p-2 flex"
+      className="shadow-md shadow-slate-900 rounded-lg bg-slate-100 p-2 flex"
       key={card.id}
     >
       <div className="flex flex-col gap-2 w-full h-fit">
@@ -71,7 +71,8 @@ export default function CardItem({
         <textarea
           defaultValue={description}
           className="italic text-slate-500 bg-slate-200 rounded-md outline-none flex flex-col w-full p-2"
-          rows={5}
+          rows={description == "" ? 1 : 5}
+          placeholder="..."
           onBlur={(e) => {
             if (e.target.value == description) return;
             setDescription(e.target.value);
