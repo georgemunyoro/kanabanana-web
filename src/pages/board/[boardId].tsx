@@ -1,5 +1,6 @@
 import { http } from "@/api";
 import ListBox from "@/components/List";
+import Navbar from "@/components/NavBar";
 import { useAutoAnimate } from "@/hooks/useAutoAnimate";
 import { useAuthStore } from "@/store/auth";
 import { List, useBoardStore } from "@/store/board";
@@ -39,16 +40,7 @@ export default function BoardPage() {
 
   return (
     <div className="h-screen flex flex-col gap-4">
-      <div className="flex h-12 bg-slate-400 px-10 items-center gap-4 justify-between">
-        <button
-          className="font-bold text-yellow-500 bg-slate-900 p-3"
-          onClick={() => router.push("/")}
-        >
-          {"🍌 Kanabanana"}
-        </button>
-        <span className="flex gap-4">Hi, {user.name} 👋</span>
-        <span>{user.email}</span>
-      </div>
+      <Navbar />
       <span className="text-slate-100 px-16 text-lg">{board?.name}</span>
       <div className="flex w-full h-full overflow-x-auto p-8 pt-0" ref={parent}>
         {listOrder?.split(",").map((i, index) => {

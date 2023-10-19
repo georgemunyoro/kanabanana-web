@@ -20,6 +20,7 @@ type AuthStoreState = {
   token: string;
   // eslint-disable-next-line no-unused-vars
   login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 };
 
 export const useAuthStore = create<AuthStoreState>((set) => ({
@@ -40,5 +41,12 @@ export const useAuthStore = create<AuthStoreState>((set) => ({
     set({ user });
 
     localStorage.setItem("token", data.data);
+  },
+
+  logout: () => {
+    set({
+      user: null,
+    });
+    localStorage.removeItem("token");
   },
 }));

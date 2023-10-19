@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/router";
+import Navbar from "@/components/NavBar";
 
 export default function Home() {
   const router = useRouter();
@@ -18,16 +19,7 @@ export default function Home() {
 
   return (
     <div className="h-screen flex flex-col gap-8">
-      <div className="flex h-12 bg-slate-400 px-10 items-center gap-4 justify-between">
-        <button
-          className="font-bold text-yellow-500 bg-slate-900 p-3"
-          onClick={() => router.push("/")}
-        >
-          {"🍌Kanabanana"}
-        </button>
-        <span>Hi, {user.name} 👋</span>
-        <span>{user.email}</span>
-      </div>
+      <Navbar />
       <div className="p-3 gap-4 flex flex-col px-10">
         {
           // eslint-disable-next-line react/jsx-no-comment-textnodes
