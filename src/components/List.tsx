@@ -5,17 +5,13 @@ import classNames from "classnames";
 import React, {
   Dispatch,
   FocusEvent,
-  Fragment,
   SetStateAction,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import CardItem from "./Card";
-import autoAnimate from "@formkit/auto-animate";
-import { useRouter } from "next/router";
 import { useAutoAnimate } from "@/hooks/useAutoAnimate";
 import NewCard from "./NewCard";
 
@@ -36,6 +32,16 @@ const ListBox = ({ list }: { list: List }) => {
 
   const [listName, setListName] = useState(list.name);
   const [isAddingNewCard, setIsAddingNewCard] = useState(false);
+
+  const [cardOrder, setCardOrder] = useState("");
+
+  useEffect(() => {
+    setCardOrder(
+      list?.cardIdsInOrder.trim() ||
+        list?.cards.map((i) => i.id).join(",") ||
+        ""
+    );
+  }, [list?.cardIdsInOrder, list?.cards]);
 
   const onBlur = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
@@ -67,7 +73,7 @@ const ListBox = ({ list }: { list: List }) => {
   const { parent } = useAutoAnimate();
 
   const fetchBoard = useCallback(() => {
-    if (board?.id) getBoard(board?.id);
+    if (board?.id != null) getBoard(board.id);
   }, [board?.id, getBoard]);
 
   return (
@@ -103,7 +109,28 @@ const ListBox = ({ list }: { list: List }) => {
       >
         {isAddingNewCard && (
           <NewCard
-            onCreated={() => {
+            onCreated={(card) => {
+              if (card != null) {
+                setCardOrder((prev) => {
+                  const newCardOrder = `${card.id},${prev}`;
+                  http
+                    .put(
+                      `/board/${board?.id}/list/${list.id}`,
+                      {
+                        cardIdsInOrder: newCardOrder,
+                      },
+                      {
+                        headers: {
+                          Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                          )}`,
+                        },
+                      }
+                    )
+                    .finally(fetchBoard);
+                  return newCardOrder;
+                });
+              }
               setIsAddingNewCard(false);
               fetchBoard();
             }}
@@ -111,21 +138,30 @@ const ListBox = ({ list }: { list: List }) => {
           />
         )}
 
-        {list.cards.map((card, index) => (
-          <>
-            <DropTarget
-              listId={list.id}
-              onUpdateList={fetchBoard}
-              position={index}
-            />
-            <CardItem listId={list.id} key={card.id} card={card} />
-          </>
-        ))}
+        {cardOrder.split(",").map((i, index) => {
+          const card = list.cards.find((c) => c.id.toString() == i);
+
+          if (!card) return <></>;
+
+          return (
+            <>
+              <DropTarget
+                listId={list.id}
+                onUpdateList={fetchBoard}
+                position={index}
+                setCardOrder={setCardOrder}
+              />
+              <CardItem listId={list.id} key={card.id} card={card} />
+            </>
+          );
+        })}
+
         <DropTarget
           listId={list.id}
           onUpdateList={fetchBoard}
           position={-1}
           expand
+          setCardOrder={setCardOrder}
         />
       </div>
     </div>
@@ -137,12 +173,14 @@ function DropTarget({
   position,
   listId: newListId,
   expand = false,
+  setCardOrder,
 }: {
   // eslint-disable-next-line no-unused-vars
   onUpdateList: () => void;
   position: number;
   listId: number;
   expand?: boolean;
+  setCardOrder: Dispatch<SetStateAction<string>>;
 }) {
   const { board } = useBoardStore();
   const { token } = useAuthStore();
@@ -150,31 +188,107 @@ function DropTarget({
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: "card",
-      drop: (x: {
+      drop: (card: {
         id: number;
         name: string;
         listId: number;
         description: string;
       }) => {
-        console.log(x, newListId, position);
+        // Moving to a different list
+        if (card.listId != newListId) {
+          // Remove card from previous list order
+          {
+            const listBeingMovedFrom = useBoardStore
+              .getState()
+              .board?.lists.find((l) => l.id == card.listId);
+            const listBeingMovedFromCardOrder = (
+              listBeingMovedFrom?.cardIdsInOrder.split(",") ||
+              listBeingMovedFrom?.cards.map((c) => c.id.toString())
+            )
+              ?.filter((i) => i !== card.id.toString())
+              .join(",");
 
-        if (x.listId == newListId) return;
-
-        // Move to new list
-        http
-          .put(
-            `/board/${board?.id}/list/${x.listId}/card/${x.id}`,
-            {
-              listId: newListId,
-              description: x.description,
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
+            http.put(
+              `/board/${board?.id}/list/${card.listId}`,
+              {
+                cardIdsInOrder: listBeingMovedFromCardOrder,
               },
-            }
-          )
-          .then(onUpdateList);
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+
+            console.log("from", card.listId, listBeingMovedFromCardOrder);
+          }
+
+          // Update list being moved to's card order
+          setCardOrder((prev) => {
+            const order = prev
+              .split(",")
+              .filter((i) => i !== card.id.toString());
+            if (position == -1) order?.push(card.id.toString());
+            else order?.splice(position, 0, card.id.toString());
+
+            console.log("to", newListId, order?.join(","));
+
+            http.put(
+              `/board/${board?.id}/list/${newListId}`,
+              {
+                cardIdsInOrder: order?.join(","),
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            );
+
+            return order.join(",");
+          });
+
+          http
+            .put(
+              `/board/${board?.id}/list/${card.listId}/card/${card.id}`,
+              {
+                listId: newListId,
+                description: card.description,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              }
+            )
+            .then(onUpdateList);
+          return;
+        }
+
+        // console.log(card.id, position);
+
+        // Moving within the same list
+        setCardOrder((prev) => {
+          const order = prev.split(",").filter((i) => i !== card.id.toString());
+          if (position == -1) order.push(card.id.toString());
+          else order.splice(position, 0, card.id.toString());
+
+          http
+            .put(
+              `/board/${board?.id}/list/${card.listId}`,
+              {
+                cardIdsInOrder: order.join(","),
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+              }
+            )
+            .then(onUpdateList);
+
+          return order.join(",");
+        });
       },
       collect: (monitor) => ({
         isOver: monitor.isOver(),

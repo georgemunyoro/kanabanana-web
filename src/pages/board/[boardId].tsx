@@ -82,10 +82,7 @@ export default function BoardPage() {
             </Fragment>
           );
         })}
-        <DropTarget
-          onUpdateListOrder={setListOrder}
-          position={board?.lists.length || 0}
-        />
+        <DropTarget onUpdateListOrder={setListOrder} position={-1} />
       </div>
     </div>
   );
@@ -104,10 +101,11 @@ function DropTarget({
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: "list",
-      drop: (x: { id: number; name: string }) => {
+      drop: (list: { id: number; name: string }) => {
         onUpdateListOrder((prev) => {
-          const order = prev.split(",").filter((i) => i !== x.id.toString());
-          order.splice(position, 0, x.id.toString());
+          const order = prev.split(",").filter((i) => i !== list.id.toString());
+          if (position == -1) order.push(list.id.toString());
+          else order.splice(position, 0, list.id.toString());
 
           http.put(
             `/board/${boardId}`,

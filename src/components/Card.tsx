@@ -3,6 +3,7 @@ import { Card, useBoardStore } from "@/store/board";
 import { useDrag } from "react-dnd";
 import { http } from "@/api";
 import { useAuthStore } from "@/store/auth";
+import classNames from "classnames";
 
 export default function CardItem({
   card,
@@ -38,7 +39,10 @@ export default function CardItem({
     <div
       ref={dragRef}
       draggable
-      className="shadow-md shadow-slate-900 rounded-lg bg-slate-100 p-2 flex"
+      className={classNames(
+        "shadow-md shadow-slate-900 rounded-lg bg-slate-100 p-2 flex",
+        isDragging && "opacity-0 hidden"
+      )}
       key={card.id}
     >
       <div className="flex flex-col gap-2 w-full h-fit">
