@@ -47,8 +47,11 @@ export default function CardItem({
           defaultValue={name}
           className="text-black bg-transparent outline-none"
           onBlur={(e) => {
-            if (e.target.value == name) return;
-            setName(e.target.value);
+            if (e.target.value == name || e.target.value.trim() == "") {
+              e.target.value = name;
+              return;
+            }
+            setName(e.target.value.trim());
             http
               .put(
                 `/board/${board?.id}/list/${listId}/card/${card.id}`,

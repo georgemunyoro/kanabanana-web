@@ -39,8 +39,11 @@ const ListBox = ({ list }: { list: List }) => {
 
   const onBlur = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
-      if (e.target.value == listName) return;
-      setListName(e.target.value);
+      if (e.target.value == listName || e.target.value.trim() == "") {
+        e.target.value = listName;
+        return;
+      }
+      setListName(e.target.value.trim());
       http
         .put(
           `/board/${board?.id}/list/${list.id}`,
@@ -81,7 +84,7 @@ const ListBox = ({ list }: { list: List }) => {
             e.preventDefault();
             e.stopPropagation();
           }}
-          maxLength={20}
+          maxLength={25}
           className="outline-none bg-transparent"
           defaultValue={listName}
           onBlur={onBlur}
@@ -187,7 +190,7 @@ function DropTarget({
       className={classNames(
         "min-h-[10px] h-[10px] w-full rounded-lg",
         isOver && "min-h-[100px] py-4",
-        expand && "!h-full"
+        expand && "!h-full min-h-[200px]"
       )}
     >
       {isOver && <div className="bg-blue-500 w-full h-full rounded-lg"></div>}

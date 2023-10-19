@@ -1,18 +1,18 @@
 import { http } from "@/api";
+import AddListInput from "@/components/AddListInput";
 import ListBox from "@/components/List";
 import Navbar from "@/components/NavBar";
 import { useAutoAnimate } from "@/hooks/useAutoAnimate";
 import { useAuthStore } from "@/store/auth";
-import { List, useBoardStore } from "@/store/board";
-import autoAnimate from "@formkit/auto-animate";
+import { useBoardStore } from "@/store/board";
 import classNames from "classnames";
 import { useRouter } from "next/router";
 import React, {
   Dispatch,
   Fragment,
   SetStateAction,
+  useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { useDrop } from "react-dnd";
@@ -26,22 +26,48 @@ export default function BoardPage() {
 
   useEffect(() => {
     if (router.query.boardId && board == null) {
-      getBoard(parseInt(router.query.boardId as string)).then((b) => {
-        setListOrder(
-          b?.listIdsInOrder.trim() || b?.lists.map((i) => i.id).join(",") || ""
-        );
-      });
+      getBoard(parseInt(router.query.boardId as string))
+        .then((b) => {
+          setListOrder(
+            b?.listIdsInOrder.trim() ||
+              b?.lists.map((i) => i.id).join(",") ||
+              ""
+          );
+        })
+        .catch(() => router.push("/"));
     }
-  }, [board, getBoard, router.query.boardId]);
+  }, [board, getBoard, router, router.query.boardId]);
 
   const { parent } = useAutoAnimate();
+
+  const [isAddingList, setIsAddingList] = useState(false);
+
+  const fetchBoard = useCallback(() => {
+    if (board?.id) getBoard(board.id);
+  }, [board?.id, getBoard]);
 
   if (!user) return <></>;
 
   return (
     <div className="h-screen flex flex-col gap-4">
       <Navbar />
-      <span className="text-slate-100 px-16 text-lg">{board?.name}</span>
+      <span className="text-slate-100 px-16 text-lg flex gap-4 items-center">
+        <span>{board?.name}</span>
+        <button
+          onClick={() => setIsAddingList(true)}
+          className="bg-yellow-400 text-black p-2 rounded-md !text-base"
+        >
+          + New List
+        </button>
+        {isAddingList && (
+          <AddListInput
+            onFinished={() => {
+              setIsAddingList(false);
+              fetchBoard();
+            }}
+          />
+        )}
+      </span>
       <div className="flex w-full h-full overflow-x-auto p-8 pt-0" ref={parent}>
         {listOrder?.split(",").map((i, index) => {
           const list = board?.lists.find((l) => l.id.toString() == i);
