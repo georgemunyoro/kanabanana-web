@@ -47,8 +47,39 @@ export const useBoardStore = create<BoardStoreState>((set) => ({
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
     });
+
+    const board: Board = data.data;
+
+    const listOrder =
+      board.listIdsInOrder || board.lists.map((l) => l.id).join(",");
+
+    let orderedLists = listOrder
+      .split(",")
+      .map((listId) =>
+        board.lists.find((l) => l.id.toString() == listId)
+      ) as List[];
+
+    orderedLists = orderedLists.map((list) => {
+      const cardOrder =
+        list.cardIdsInOrder || list.cards.map((c) => c.id).join(",");
+      const orderedCards = cardOrder
+        .split(",")
+        .map((cardId) =>
+          list.cards.find((c) => c.id.toString() == cardId)
+        ) as Card[];
+
+      list.cardIdsInOrder = cardOrder;
+      list.cards = orderedCards;
+
+      return list;
+    });
+
     set({
-      board: data.data,
+      board: {
+        ...board,
+        lists: orderedLists as List[],
+        listIdsInOrder: listOrder,
+      },
     });
     return data.data as Board | null;
   },
