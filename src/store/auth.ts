@@ -19,6 +19,8 @@ type AuthStoreState = {
   user: User | null;
   token: string;
   // eslint-disable-next-line no-unused-vars
+  register: (name: string, email: string, password: string) => Promise<void>;
+  // eslint-disable-next-line no-unused-vars
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   getUser: () => Promise<void>;
@@ -27,6 +29,16 @@ type AuthStoreState = {
 export const useAuthStore = create<AuthStoreState>((set, get) => ({
   user: null,
   token: "",
+
+  register: async (name: string, email: string, password: string) => {
+    const { data } = await http.post("/auth/register", {
+      email,
+      password,
+      name,
+    });
+
+    console.log(data);
+  },
 
   login: async (email: string, password: string) => {
     const { data } = await http.post("/auth/login", { email, password });

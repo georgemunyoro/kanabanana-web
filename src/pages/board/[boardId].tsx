@@ -16,6 +16,7 @@ import React, {
   useState,
 } from "react";
 import { useDrop } from "react-dnd";
+import Board from "@/components/Board";
 
 export default function BoardPage() {
   const { user, token } = useAuthStore();
@@ -57,57 +58,6 @@ export default function BoardPage() {
   return (
     <div className="h-screen flex flex-col gap-4">
       <Navbar />
-      <span className="text-slate-100 px-16 text-lg flex gap-4 items-center">
-        {!showEmpty && (
-          <>
-            <button
-              onClick={() => setIsAddingList(true)}
-              className="bg-yellow-400 text-black p-2 rounded-md !text-xl hover:scale-105 duration-150"
-            >
-              + New List
-            </button>
-            {isAddingList && (
-              <AddListInput
-                onFinished={() => {
-                  setIsAddingList(false);
-                  fetchBoard();
-                }}
-              />
-            )}
-          </>
-        )}
-        <input
-          defaultValue={board?.name}
-          className="bg-transparent text-2xl outline-none text-slate-100 w-4/5"
-          onBlur={(e) => {
-            if (e.target.value.trim() == "" || e.target.value == name) {
-              if (!name) return;
-              e.target.value = name;
-              return;
-            }
-            setName(e.target.value);
-
-            e.target.disabled = true;
-
-            http
-              .put(
-                `/board/${board.id}`,
-                {
-                  name: e.target.value,
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                  },
-                }
-              )
-              .then(() => {
-                e.target.disabled = false;
-              })
-              .finally(useAuthStore.getState().getUser);
-          }}
-        />
-      </span>
 
       <span
         ref={emptyParent}
@@ -138,25 +88,12 @@ export default function BoardPage() {
 
       <div
         className={classNames(
-          "flex w-full h-full overflow-x-auto p-8 pt-0",
+          "flex w-full h-full overflow-x-auto pt-0",
           showEmpty && "hidden"
         )}
         ref={parent}
       >
-        {listOrder?.split(",").map((i, index) => {
-          const list = board?.lists.find((l) => l.id.toString() == i);
-
-          if (!list) return <></>;
-
-          return (
-            // eslint-disable-next-line react/jsx-key
-            <Fragment>
-              <DropTarget onUpdateListOrder={setListOrder} position={index} />
-              <ListBox key={list.id} list={list} />
-            </Fragment>
-          );
-        })}
-        <DropTarget onUpdateListOrder={setListOrder} position={-1} />
+        <Board />
       </div>
     </div>
   );

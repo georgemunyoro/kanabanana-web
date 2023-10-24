@@ -1,7 +1,10 @@
+import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
 
 export default function Register() {
+  const { register } = useAuthStore();
+
   const [name, setName] = useState<string>();
   const [email, setEmail] = useState<string>();
   const [password, setPassword] = useState<string>();
@@ -47,9 +50,17 @@ export default function Register() {
           disabled={
             password !== password2 ||
             (password?.length || 0) < 8 ||
-            email === ""
+            email === "" ||
+            name === "" ||
+            !name
           }
           className="mt-3 disabled:bg-gray-500 disabled:text-gray-900 bg-black text-white w-full p-2 py-3 hover:bg-yellow-400 hover:text-black duration-100 active:bg-yellow-500"
+          onClick={() => {
+            if (name && email && password)
+              register(name, email, password).then(() => {
+                router.push("/login");
+              });
+          }}
         >
           Sign up
         </button>

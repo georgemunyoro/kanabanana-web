@@ -1,4 +1,6 @@
 import { http } from "@/api";
+import Board from "@/components/Board";
+import { IBoard } from "@/components/Board/types";
 import { create } from "zustand";
 
 export type Label = {};
@@ -51,5 +53,12 @@ export const useBoardStore = create<BoardStoreState>((set) => ({
       board: data.data,
     });
     return data.data as Board | null;
+  },
+}));
+
+export const boardStore = create<{ board: IBoard }>(() => ({
+  board: {
+    name: "",
+    lists: [],
   },
 }));
