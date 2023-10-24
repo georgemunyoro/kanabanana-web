@@ -60,7 +60,7 @@ export default function BoardPage() {
       <Navbar />
 
       <span
-        ref={emptyParent}
+        // ref={emptyParent}
         className={classNames(!showEmpty && "hidden", "h-screen w-screen")}
       >
         {showEmpty && (
@@ -91,62 +91,10 @@ export default function BoardPage() {
           "flex w-full h-full overflow-x-auto pt-0",
           showEmpty && "hidden"
         )}
-        ref={parent}
+        // ref={parent}
       >
         <Board />
       </div>
     </div>
-  );
-}
-
-function DropTarget({
-  onUpdateListOrder,
-  position,
-}: {
-  // eslint-disable-next-line no-unused-vars
-  onUpdateListOrder: Dispatch<SetStateAction<string>>;
-  position: number;
-}) {
-  const boardId = useRouter().query.boardId;
-
-  const [{ isOver }, drop] = useDrop(
-    () => ({
-      accept: "list",
-      drop: (list: { id: number; name: string }) => {
-        onUpdateListOrder((prev) => {
-          const order = prev.split(",").filter((i) => i !== list.id.toString());
-          if (position == -1) order.push(list.id.toString());
-          else order.splice(position, 0, list.id.toString());
-
-          http.put(
-            `/board/${boardId}`,
-            {
-              listIdsInOrder: order.join(","),
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-
-          return order.join(",");
-        });
-      },
-      collect: (monitor) => ({
-        isOver: monitor.isOver(),
-      }),
-    }),
-    []
-  );
-
-  return (
-    <div
-      ref={drop}
-      className={classNames(
-        "h-full min-w-[30px] duration-300",
-        isOver && "!min-w-[270px]"
-      )}
-    ></div>
   );
 }

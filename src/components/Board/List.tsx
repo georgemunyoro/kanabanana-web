@@ -6,7 +6,7 @@ import { IList } from "./types";
 import { boardStore } from "@/store/board";
 import { produce } from "immer";
 import NewCard from "./NewCard";
-import Card from "./Card";
+import Card, { CardDropTarget } from "./Card";
 
 type ListProps = {
   list: IList;
@@ -121,7 +121,7 @@ const List = ({ list, position }: ListProps) => {
           </button>
         </span>
         <div
-          ref={parent}
+          // ref={parent}
           className="pt-3 p-3 flex flex-col overflow-y-scroll overflow-x-hidden h-full gap-2"
         >
           {isAddingNewCard && (
@@ -147,12 +147,14 @@ const List = ({ list, position }: ListProps) => {
 
           {list.cards.map((card, index) => (
             <Card
-              key={card.name}
+              key={`${card.name}-${index}`}
               card={card}
               listName={list.name}
               position={index}
             />
           ))}
+
+          <CardDropTarget position={-1} listName={list.name}></CardDropTarget>
         </div>
       </div>
     </ListDropTarget>

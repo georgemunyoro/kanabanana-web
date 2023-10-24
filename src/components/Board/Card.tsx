@@ -40,7 +40,7 @@ const Card = ({
   useEffect(() => {
     const cardElement = document.getElementById(cardId);
     if (cardElement) setCardHeight(cardElement.getBoundingClientRect().height);
-  }, [cardHeight, cardId]);
+  }, [cardHeight, cardId, card]);
 
   return (
     <CardDropTarget
@@ -148,12 +148,16 @@ export const CardDropTarget = ({
                 listIndex
               ].cards.filter((i) => i.name !== card.name);
 
-              draft.board.lists[listIndex].cards.splice(position, 0, {
-                name: card.name,
-                description: card.description,
-              });
-
-              console.log(draft.board.lists[listIndex].cards);
+              if (position === -1)
+                draft.board.lists[listIndex].cards.push({
+                  name: card.name,
+                  description: card.description,
+                });
+              else
+                draft.board.lists[listIndex].cards.splice(position, 0, {
+                  name: card.name,
+                  description: card.description,
+                });
             } else {
               // Remove card from previous list
               const prevListIndex = draft.board.lists.findIndex(
@@ -168,10 +172,17 @@ export const CardDropTarget = ({
               const listIndex = draft.board.lists.findIndex(
                 (list) => list.name === listName
               );
-              draft.board.lists[listIndex].cards.splice(position, 0, {
-                name: card.name,
-                description: card.description,
-              });
+
+              if (position === -1)
+                draft.board.lists[listIndex].cards.push({
+                  name: card.name,
+                  description: card.description,
+                });
+              else
+                draft.board.lists[listIndex].cards.splice(position, 0, {
+                  name: card.name,
+                  description: card.description,
+                });
             }
           });
         });
@@ -185,11 +196,11 @@ export const CardDropTarget = ({
   );
 
   return (
-    <div ref={dropRef}>
+    <div ref={dropRef} className={classNames(position === -1 && "h-full")}>
       {!disabled && (
         <div
           className={classNames(
-            "bg-slate-900 rounded-md w-full pb-1",
+            "bg-slate-900 rounded-md w-full",
             isOver && "mb-2"
           )}
           style={

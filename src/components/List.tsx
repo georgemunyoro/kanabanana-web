@@ -219,8 +219,6 @@ function DropTarget({
                 },
               }
             );
-
-            console.log("from", card.listId, listBeingMovedFromCardOrder);
           }
 
           // Update list being moved to's card order
@@ -230,8 +228,6 @@ function DropTarget({
               .filter((i) => i !== card.id.toString());
             if (position == -1) order?.push(card.id.toString());
             else order?.splice(position, 0, card.id.toString());
-
-            console.log("to", newListId, order?.join(","));
 
             http.put(
               `/board/${board?.id}/list/${newListId}`,
@@ -264,8 +260,6 @@ function DropTarget({
             .then(onUpdateList);
           return;
         }
-
-        // console.log(card.id, position);
 
         // Moving within the same list
         setCardOrder((prev) => {

@@ -41,8 +41,6 @@ export default function AddListInput({
             .then(async (data) => {
               const newList = data.data.data;
 
-              console.log("new list", newList);
-
               await http.put(
                 `/board/${board.id}`,
                 {

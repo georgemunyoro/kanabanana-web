@@ -4,7 +4,7 @@ import List from "./List";
 import AddListInput from "./AddListInput";
 import { boardStore } from "@/store/board";
 
-export default function Board() {
+const Board = () => {
   const { board } = boardStore();
   const [showAddingListInput, setShowAddingListInput] = useState(false);
 
@@ -50,4 +50,6 @@ export default function Board() {
       </div>
     </div>
   );
-}
+};
+
+export default Board;
