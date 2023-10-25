@@ -1,6 +1,5 @@
 import { http } from "@/api";
 import { useAuthStore } from "@/store/auth";
-import { useBoardStore } from "@/store/board";
 import React, { useState } from "react";
 
 export default function AddBoardInput({
@@ -11,7 +10,6 @@ export default function AddBoardInput({
   const [newBoardName, setNewBoardName] = useState("");
 
   const { token } = useAuthStore();
-  const { board } = useBoardStore();
 
   return (
     <div className="p-1 flex gap-2 bg-slate-100 rounded-lg items-center px-2 h-10">

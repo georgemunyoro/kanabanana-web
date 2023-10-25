@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import classNames from "classnames";
 import { ICard } from "./types";
-import { boardStore } from "@/store/board";
-import { produce } from "immer";
+import useBoard from "./useBoard";
 
 const Card = ({
   card,
@@ -15,6 +14,8 @@ const Card = ({
   position: number;
 }) => {
   const [cardHeight, setCardHeight] = useState(0);
+
+  const { updateCardDetails, deleteCard } = useBoard();
 
   const [{ isDragging }, dragRef] = useDrag(
     () => ({
@@ -59,32 +60,32 @@ const Card = ({
         key={card.name}
       >
         <div className="flex flex-col gap-2 w-full h-fit">
-          <input
-            maxLength={20}
-            defaultValue={name}
-            className="text-black bg-transparent outline-none"
-            onBlur={(e) => {
-              if (e.target.value == name || e.target.value.trim() == "") {
-                e.target.value = name;
-                return;
-              }
-              setName(e.target.value.trim());
-
-              boardStore.setState((prev) => {
-                const listIndex = prev.board.lists.findIndex(
-                  (list) => list.name === listName
-                );
-                const cardIndex = prev.board.lists[listIndex].cards.findIndex(
-                  (c) => c.name === card.name
-                );
-
-                return produce(prev, (draft) => {
-                  draft.board.lists[listIndex].cards[cardIndex].name =
-                    e.target.value.trim();
+          <div className="flex gap-2 w-full">
+            <input
+              maxLength={20}
+              defaultValue={name}
+              className="text-black bg-transparent outline-none grow"
+              onBlur={(e) => {
+                if (e.target.value == name || e.target.value.trim() == "") {
+                  e.target.value = name;
+                  return;
+                }
+                setName(e.target.value.trim());
+                updateCardDetails({
+                  oldName: card.name,
+                  newName: e.target.value.trim(),
+                  description,
+                  listName,
                 });
-              });
-            }}
-          />
+              }}
+            />
+            <button
+              className="rounded-md text-black px-2"
+              onClick={() => deleteCard(card.name)}
+            >
+              x
+            </button>
+          </div>
           <textarea
             defaultValue={description}
             className="italic text-slate-500 bg-slate-200 rounded-md outline-none flex flex-col w-full p-2"
@@ -93,19 +94,11 @@ const Card = ({
             onBlur={(e) => {
               if (e.target.value == description) return;
               setDescription(e.target.value);
-
-              boardStore.setState((prev) => {
-                const listIndex = prev.board.lists.findIndex(
-                  (list) => list.name === listName
-                );
-                const cardIndex = prev.board.lists[listIndex].cards.findIndex(
-                  (c) => c.name === card.name
-                );
-
-                return produce(prev, (draft) => {
-                  draft.board.lists[listIndex].cards[cardIndex].description =
-                    e.target.value.trim();
-                });
+              updateCardDetails({
+                oldName: card.name,
+                newName: card.name,
+                description: e.target.value,
+                listName,
               });
             }}
           />
@@ -128,6 +121,8 @@ export const CardDropTarget = ({
   disabled,
   listName,
 }: CardDropTargetProps) => {
+  const { moveCard } = useBoard();
+
   const [{ isOver, cardHeight }, dropRef] = useDrop(
     () => ({
       accept: "card",
@@ -137,54 +132,14 @@ export const CardDropTarget = ({
         listName: string;
         height: number;
       }) => {
-        boardStore.setState((prev) => {
-          return produce(prev, (draft) => {
-            // If card is dropped in the same list, update card position
-            if (card.listName === listName) {
-              const listIndex = draft.board.lists.findIndex(
-                (list) => list.name === listName
-              );
-              draft.board.lists[listIndex].cards = prev.board.lists[
-                listIndex
-              ].cards.filter((i) => i.name !== card.name);
-
-              if (position === -1)
-                draft.board.lists[listIndex].cards.push({
-                  name: card.name,
-                  description: card.description,
-                });
-              else
-                draft.board.lists[listIndex].cards.splice(position, 0, {
-                  name: card.name,
-                  description: card.description,
-                });
-            } else {
-              // Remove card from previous list
-              const prevListIndex = draft.board.lists.findIndex(
-                (list) => list.name === card.listName
-              );
-              const prevCardIndex = draft.board.lists[
-                prevListIndex
-              ].cards.findIndex((c) => c.name === card.name);
-              draft.board.lists[prevListIndex].cards.splice(prevCardIndex, 1);
-
-              // Add card to new list
-              const listIndex = draft.board.lists.findIndex(
-                (list) => list.name === listName
-              );
-
-              if (position === -1)
-                draft.board.lists[listIndex].cards.push({
-                  name: card.name,
-                  description: card.description,
-                });
-              else
-                draft.board.lists[listIndex].cards.splice(position, 0, {
-                  name: card.name,
-                  description: card.description,
-                });
-            }
-          });
+        moveCard({
+          card: {
+            name: card.name,
+            description: card.description,
+          },
+          oldListName: card.listName,
+          newListName: listName,
+          position,
         });
       },
       collect: (monitor) => ({

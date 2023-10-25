@@ -1,11 +1,10 @@
-import { produce } from "immer";
 import React, { useState } from "react";
 import List from "./List";
 import AddListInput from "./AddListInput";
-import { boardStore } from "@/store/board";
+import useBoard from "./useBoard";
 
 const Board = () => {
-  const { board } = boardStore();
+  const { board, addList, renameBoard } = useBoard();
   const [showAddingListInput, setShowAddingListInput] = useState(false);
 
   return (
@@ -23,22 +22,19 @@ const Board = () => {
               const listExists = board.lists.some(
                 (list) => list.name === newListName
               );
-              if (newListName && !listExists) {
-                boardStore.setState((prev) =>
-                  produce(prev, (draft) => {
-                    draft.board.lists.push({
-                      name: newListName,
-                      cards: [],
-                    });
-                  })
-                );
-              }
+              if (newListName && !listExists) addList(newListName);
               setShowAddingListInput(false);
             }}
           />
         )}
         <input
-          value={board.name}
+          defaultValue={board.name}
+          onBlur={(e) => {
+            if (e.target.value == board.name || e.target.value.trim() == "") {
+              e.target.value = board.name;
+            }
+            renameBoard(e.target.value);
+          }}
           className="text-lg bg-transparent text-slate-200 outline-none"
         />
       </div>

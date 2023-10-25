@@ -12,18 +12,26 @@ const NewCard = ({
   return (
     <div draggable className="rounded-lg bg-slate-100 p-2 flex">
       <div className="flex flex-col gap-2 w-full h-fit">
-        <input
-          maxLength={20}
-          placeholder={"Hello, World! 🎉"}
-          className="text-black bg-transparent outline-none"
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={() => {
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
             if (name) onCreated(name);
             else onCreated(null);
           }}
-        />
+        >
+          <input
+            maxLength={20}
+            placeholder={"Hello, World! 🎉"}
+            className="text-black bg-transparent outline-none"
+            autoFocus
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => {
+              if (name) onCreated(name);
+              else onCreated(null);
+            }}
+          />
+        </form>
         <textarea
           disabled
           defaultValue={description}

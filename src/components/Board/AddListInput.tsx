@@ -11,18 +11,26 @@ const AddListInput = ({
   return (
     <div className="p-1 flex gap-2 bg-slate-100 rounded-lg items-center px-2 h-10">
       <div className="text-black">Name:</div>
-      <input
-        autoFocus
-        className="rounded bg-slate-100 text-black outline-none"
-        value={newListName}
-        onChange={(e) => setNewListName(e.target.value)}
-      />
-      <button
-        onClick={() => onFinished(newListName)}
-        className="text-black text-base bg-yellow-400 p-1 px-2 rounded-md"
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onFinished(newListName);
+        }}
       >
-        ✅ Add
-      </button>
+        <input
+          name="newListName"
+          autoFocus
+          className="rounded bg-slate-100 text-black outline-none"
+          value={newListName}
+          onChange={(e) => setNewListName(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="text-black text-base bg-yellow-400 p-1 px-2 rounded-md"
+        >
+          ✅ Add
+        </button>
+      </form>
       <button
         onClick={() => {
           setNewListName("");

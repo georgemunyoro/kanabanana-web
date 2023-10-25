@@ -3,7 +3,7 @@ import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/router";
 import Navbar from "@/components/NavBar";
 import AddBoardInput from "@/components/AddBoardInput";
-import { useBoardStore } from "@/store/board";
+import { boardStore } from "@/store/board";
 
 export default function Home() {
   const router = useRouter();
@@ -12,8 +12,11 @@ export default function Home() {
   useEffect(() => {
     if (user == null) router.push("/login");
 
-    useBoardStore.setState({
-      board: null,
+    boardStore.setState({
+      board: {
+        lists: [],
+        name: "",
+      },
     });
   }, [router, user]);
 

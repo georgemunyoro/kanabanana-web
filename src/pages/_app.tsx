@@ -5,6 +5,8 @@ import { useAuthStore } from "@/store/auth";
 import { http } from "@/api";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function App({ Component, pageProps }: AppProps) {
   const { user } = useAuthStore();
@@ -45,7 +47,8 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   return (
-    <div className="bg-slate-900 font-mono">
+    <div className="bg-slate-900">
+      <ToastContainer />
       {isLoading ? (
         <div className="w-screen h-screen flex items-center justify-center animate-bounce text-5xl">
           🍌

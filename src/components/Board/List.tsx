@@ -1,12 +1,10 @@
 import React, { useState, useCallback, FocusEvent } from "react";
-import { useAutoAnimate } from "@/hooks/useAutoAnimate";
 import classNames from "classnames";
 import { useDrag, useDrop } from "react-dnd";
 import { IList } from "./types";
-import { boardStore } from "@/store/board";
-import { produce } from "immer";
 import NewCard from "./NewCard";
 import Card, { CardDropTarget } from "./Card";
+import useBoard from "./useBoard";
 
 type ListProps = {
   list: IList;
@@ -24,21 +22,9 @@ const List = ({ list, position }: ListProps) => {
     }),
   }));
 
-  const [isAddingNewCard, setIsAddingNewCard] = useState(false);
+  const { deleteList, renameList, moveList, addCard } = useBoard();
 
-  const updateListName = useCallback(
-    (newName: string) => {
-      boardStore.setState((prev) =>
-        produce(prev, (draft) => {
-          const listIndex = draft.board.lists.findIndex(
-            (l) => l.name === list.name
-          );
-          draft.board.lists[listIndex].name = newName;
-        })
-      );
-    },
-    [list.name]
-  );
+  const [isAddingNewCard, setIsAddingNewCard] = useState(false);
 
   const onListNameInputBlur = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
@@ -46,46 +32,15 @@ const List = ({ list, position }: ListProps) => {
         e.target.value = list.name;
         return;
       }
-      updateListName(e.target.value.trim());
+      renameList(list.name, e.target.value.trim());
     },
-    [list.name, updateListName]
-  );
-
-  const onDeleteList = useCallback(() => {
-    boardStore.setState((prev) =>
-      produce(prev, (draft) => {
-        draft.board.lists = draft.board.lists.filter(
-          (l) => l.name !== list.name
-        );
-      })
-    );
-  }, [list.name]);
-
-  const { parent } = useAutoAnimate();
-
-  const onChangeListPosition = useCallback(
-    (list: { name: string }) => {
-      boardStore.setState((prev) => {
-        const newListOrder = prev.board.lists
-          .map((l) => l.name)
-          .filter((l) => l !== list.name);
-        newListOrder.splice(position, 0, list.name);
-
-        return produce(prev, (draft) => {
-          draft.board.lists = draft.board.lists.sort(
-            (a, b) =>
-              newListOrder.indexOf(a.name) - newListOrder.indexOf(b.name)
-          );
-        });
-      });
-    },
-    [position]
+    [list.name, renameList]
   );
 
   return (
     <ListDropTarget
       position={position}
-      onChangeListPosition={onChangeListPosition}
+      onChangeListPosition={(e) => moveList(e.name, position)}
       disabled={isDragging}
     >
       <div
@@ -115,31 +70,16 @@ const List = ({ list, position }: ListProps) => {
           </button>
           <button
             className="rounded-md bg-red-500 text-black px-4"
-            onClick={onDeleteList}
+            onClick={() => deleteList(list.name)}
           >
             DEL
           </button>
         </span>
-        <div
-          // ref={parent}
-          className="pt-3 p-3 flex flex-col overflow-y-scroll overflow-x-hidden h-full gap-2"
-        >
+        <div className="pt-3 p-3 flex flex-col overflow-y-scroll overflow-x-hidden h-full gap-2 pb-40">
           {isAddingNewCard && (
             <NewCard
               onCreated={(newCardName) => {
-                if (newCardName) {
-                  boardStore.setState((prev) =>
-                    produce(prev, (draft) => {
-                      const listIndex = draft.board.lists.findIndex(
-                        (l) => l.name === list.name
-                      );
-                      draft.board.lists[listIndex].cards.unshift({
-                        name: newCardName,
-                        description: "",
-                      });
-                    })
-                  );
-                }
+                if (newCardName) addCard(list.name, newCardName);
                 setIsAddingNewCard(false);
               }}
             />
